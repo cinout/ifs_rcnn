@@ -8,7 +8,7 @@ from collections import deque
 from detectron2.data import MetadataCatalog
 from detectron2.utils.video_visualizer import VideoVisualizer
 from detectron2.utils.visualizer import ColorMode, Visualizer
-from fsdet.engine import DefaultPredictor
+from fct.engine import DefaultPredictor
 
 
 class VisualizationDemo(object):
@@ -47,14 +47,10 @@ class VisualizationDemo(object):
         predictions = self.predictor(image)
         # Convert image from OpenCV BGR format to Matplotlib RGB format.
         image = image[:, :, ::-1]
-        visualizer = Visualizer(
-            image, self.metadata, instance_mode=self.instance_mode
-        )
+        visualizer = Visualizer(image, self.metadata, instance_mode=self.instance_mode)
         if "instances" in predictions:
             instances = predictions["instances"].to(self.cpu_device)
-            vis_output = visualizer.draw_instance_predictions(
-                predictions=instances
-            )
+            vis_output = visualizer.draw_instance_predictions(predictions=instances)
 
         return predictions, vis_output
 
@@ -154,13 +150,9 @@ class AsyncPredictor:
         for gpuid in range(max(num_gpus, 1)):
             cfg = cfg.clone()
             cfg.defrost()
-            cfg.MODEL.DEVICE = (
-                "cuda:{}".format(gpuid) if num_gpus > 0 else "cpu"
-            )
+            cfg.MODEL.DEVICE = "cuda:{}".format(gpuid) if num_gpus > 0 else "cpu"
             self.procs.append(
-                AsyncPredictor._PredictWorker(
-                    cfg, self.task_queue, self.result_queue
-                )
+                AsyncPredictor._PredictWorker(cfg, self.task_queue, self.result_queue)
             )
 
         self.put_idx = 0

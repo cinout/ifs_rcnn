@@ -1,5 +1,5 @@
 
-conda activate fsdet
+conda activate fct
 
 dataset=coco
 detection_folder=${dataset^^}-detection

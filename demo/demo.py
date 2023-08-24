@@ -10,7 +10,7 @@ import time
 from demo.predictor import VisualizationDemo
 from detectron2.data.detection_utils import read_image
 from detectron2.utils.logger import setup_logger
-from fsdet.config import get_cfg
+from fct.config import get_cfg
 
 # constants
 WINDOW_NAME = "COCO detections"
@@ -29,9 +29,7 @@ def setup_cfg(args):
 
 
 def get_parser():
-    parser = argparse.ArgumentParser(
-        description="FsDet demo for builtin models"
-    )
+    parser = argparse.ArgumentParser(description="FsDet demo for builtin models")
     parser.add_argument(
         "--config-file",
         default="configs/COCO-detection/faster_rcnn_R_101_FPN_ft_all_1shot.yaml",
@@ -92,9 +90,7 @@ if __name__ == "__main__":
             logger.info(
                 "{}: {} in {:.2f}s".format(
                     path,
-                    "detected {} instances".format(
-                        len(predictions["instances"])
-                    )
+                    "detected {} instances".format(len(predictions["instances"]))
                     if "instances" in predictions
                     else "finished",
                     time.time() - start_time,
@@ -104,9 +100,7 @@ if __name__ == "__main__":
             if args.output:
                 if os.path.isdir(args.output):
                     assert os.path.isdir(args.output), args.output
-                    out_filename = os.path.join(
-                        args.output, os.path.basename(path)
-                    )
+                    out_filename = os.path.join(args.output, os.path.basename(path))
                 else:
                     assert (
                         len(args.input) == 1
@@ -115,9 +109,7 @@ if __name__ == "__main__":
                 visualized_output.save(out_filename)
             else:
                 cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
-                cv2.imshow(
-                    WINDOW_NAME, visualized_output.get_image()[:, :, ::-1]
-                )
+                cv2.imshow(WINDOW_NAME, visualized_output.get_image()[:, :, ::-1])
                 if cv2.waitKey(0) == 27:
                     break  # esc to quit
     elif args.webcam:

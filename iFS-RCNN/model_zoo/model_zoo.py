@@ -1,6 +1,6 @@
 import torch
 
-from fsdet.modeling import build_model
+from fct.modeling import build_model
 
 import os
 import pkg_resources
@@ -145,12 +145,10 @@ def get_config_file(config_path):
         str: the real path to the config file.
     """
     cfg_file = pkg_resources.resource_filename(
-        "fsdet.model_zoo", os.path.join("configs", config_path)
+        "fct.model_zoo", os.path.join("configs", config_path)
     )
     if not os.path.exists(cfg_file):
-        raise RuntimeError(
-            "{} not available in Model Zoo!".format(config_path)
-        )
+        raise RuntimeError("{} not available in Model Zoo!".format(config_path))
     return cfg_file
 
 
@@ -166,7 +164,7 @@ def get(config_path, trained: bool = False):
             an ImageNet pre-trained model, while randomly initializing the other weights.
     Example:
     .. code-block:: python
-        from fsdet import model_zoo
+        from fct import model_zoo
         model = model_zoo.get("COCO-detection/faster_rcnn_R_101_FPN_ft_all_1shot.yaml", trained=True)
     """
     cfg_file = get_config_file(config_path)

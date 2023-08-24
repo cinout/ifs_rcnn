@@ -15,9 +15,7 @@ class CfgNode(_CfgNode):
     """
 
     # Note that the default value of allow_unsafe is changed to True
-    def merge_from_file(
-        self, cfg_filename: str, allow_unsafe: bool = True
-    ) -> None:
+    def merge_from_file(self, cfg_filename: str, allow_unsafe: bool = True) -> None:
         loaded_cfg = _CfgNode.load_yaml_with_base(
             cfg_filename, allow_unsafe=allow_unsafe
         )
@@ -71,7 +69,7 @@ def get_cfg() -> CfgNode:
     """
     Get a copy of the default config.
     Returns:
-        a fsdet CfgNode instance.
+        a fct CfgNode instance.
     """
     from .defaults import _C
 
@@ -84,7 +82,7 @@ def set_global_cfg(cfg: CfgNode) -> None:
     Assume that the given "cfg" has the key "KEY", after calling
     `set_global_cfg(cfg)`, the key can be accessed by:
     .. code-block:: python
-        from fsdet.config import global_cfg
+        from fct.config import global_cfg
         print(global_cfg.KEY)
     By using a hacky global config, you can access these configs anywhere,
     without having to pass the config object or the values deep into the code.

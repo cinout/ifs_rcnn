@@ -1,5 +1,5 @@
 
-conda activate fsdet
+conda activate fct
 
 arch=50 # 50, 101
 network=mask_rcnn # mask_rcnn, faster_rcnn

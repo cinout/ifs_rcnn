@@ -13,7 +13,7 @@ from detectron2.data import MetadataCatalog
 from detectron2.utils import comm
 from detectron2.utils.logger import create_small_table
 
-from fsdet.evaluation.evaluator import DatasetEvaluator
+from fct.evaluation.evaluator import DatasetEvaluator
 
 
 class PascalVOCDetectionEvaluator(DatasetEvaluator):
@@ -35,7 +35,9 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         self.cfg = cfg
         meta = MetadataCatalog.get(dataset_name)
         self._anno_file_template = os.path.join(meta.dirname, "Annotations", "{}.xml")
-        self._image_set_path = os.path.join(meta.dirname, "ImageSets", "Main", meta.split + ".txt")
+        self._image_set_path = os.path.join(
+            meta.dirname, "ImageSets", "Main", meta.split + ".txt"
+        )
         self._class_names = meta.thing_classes
         # add this two terms for calculating the mAP of different subset
         self._base_classes = meta.base_classes
@@ -46,7 +48,9 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         self._logger = logging.getLogger(__name__)
 
     def reset(self):
-        self._predictions = defaultdict(list)  # class name -> list of prediction strings
+        self._predictions = defaultdict(
+            list
+        )  # class name -> list of prediction strings
 
     def process(self, inputs, outputs):
         for input, output in zip(inputs, outputs):
@@ -109,38 +113,56 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
                     )
                     aps[thresh].append(ap * 100)
 
-                    if self._base_classes is not None and cls_name in self._base_classes:
+                    if (
+                        self._base_classes is not None
+                        and cls_name in self._base_classes
+                    ):
                         aps_base[thresh].append(ap * 100)
                         exist_base = True
 
-                    if self._novel_classes is not None and cls_name in self._novel_classes:
+                    if (
+                        self._novel_classes is not None
+                        and cls_name in self._novel_classes
+                    ):
                         aps_novel[thresh].append(ap * 100)
                         exist_novel = True
 
         ret = OrderedDict()
         mAP = {iou: np.mean(x) for iou, x in aps.items()}
-        ret["bbox"] = {"AP": np.mean(list(mAP.values())), "AP50": mAP[50], "AP75": mAP[75]}
+        ret["bbox"] = {
+            "AP": np.mean(list(mAP.values())),
+            "AP50": mAP[50],
+            "AP75": mAP[75],
+        }
 
         # adding evaluation of the base and novel classes
         if exist_base:
             mAP_base = {iou: np.mean(x) for iou, x in aps_base.items()}
             ret["bbox"].update(
-                {"bAP": np.mean(list(mAP_base.values())), "bAP50": mAP_base[50],
-                 "bAP75": mAP_base[75]}
+                {
+                    "bAP": np.mean(list(mAP_base.values())),
+                    "bAP50": mAP_base[50],
+                    "bAP75": mAP_base[75],
+                }
             )
 
         if exist_novel:
             mAP_novel = {iou: np.mean(x) for iou, x in aps_novel.items()}
-            ret["bbox"].update({
-                "nAP": np.mean(list(mAP_novel.values())), "nAP50": mAP_novel[50],
-                "nAP75": mAP_novel[75]
-            })
+            ret["bbox"].update(
+                {
+                    "nAP": np.mean(list(mAP_novel.values())),
+                    "nAP50": mAP_novel[50],
+                    "nAP75": mAP_novel[75],
+                }
+            )
 
         # write per class AP to logger
         per_class_res = {self._class_names[idx]: ap for idx, ap in enumerate(aps[50])}
 
-        self._logger.info("Evaluate per-class mAP50:\n"+create_small_table(per_class_res))
-        self._logger.info("Evaluate overall bbox:\n"+create_small_table(ret["bbox"]))
+        self._logger.info(
+            "Evaluate per-class mAP50:\n" + create_small_table(per_class_res)
+        )
+        self._logger.info("Evaluate overall bbox:\n" + create_small_table(ret["bbox"]))
         return ret
 
 
@@ -212,7 +234,9 @@ def voc_ap(rec, prec, use_07_metric=False):
     return ap
 
 
-def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_metric=False):
+def voc_eval(
+    detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_metric=False
+):
     """rec, prec, ap = voc_eval(detpath,
                                 annopath,
                                 imagesetfile,

@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from fsdet.modeling.roi_heads import build_roi_heads
+from fct.modeling.roi_heads import build_roi_heads
 
 import logging
 from detectron2.modeling.backbone import build_backbone
@@ -42,14 +42,10 @@ class GeneralizedRCNN(nn.Module):
         assert len(cfg.MODEL.PIXEL_MEAN) == len(cfg.MODEL.PIXEL_STD)
         num_channels = len(cfg.MODEL.PIXEL_MEAN)
         pixel_mean = (
-            torch.Tensor(cfg.MODEL.PIXEL_MEAN)
-            .to(self.device)
-            .view(num_channels, 1, 1)
+            torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(num_channels, 1, 1)
         )
         pixel_std = (
-            torch.Tensor(cfg.MODEL.PIXEL_STD)
-            .to(self.device)
-            .view(num_channels, 1, 1)
+            torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(num_channels, 1, 1)
         )
         self.normalizer = lambda x: (x - pixel_mean) / pixel_std
         self.to(self.device)
@@ -65,17 +61,17 @@ class GeneralizedRCNN(nn.Module):
             print("froze proposal generator parameters")
 
         if cfg.MODEL.ROI_HEADS.FREEZE_FEAT or cfg.MODEL.FREEZE_ALL:
-            if hasattr(self.roi_heads, 'box_head'):
+            if hasattr(self.roi_heads, "box_head"):
                 for p in self.roi_heads.box_head.parameters():
                     p.requires_grad = False
                 print("froze box_head parameters")
 
-            if hasattr(self.roi_heads, 'mask_head'):
+            if hasattr(self.roi_heads, "mask_head"):
                 self.roi_heads.mask_head.set_freeze()
                 print("froze roi_mask_head parameters")
 
-            if cfg.MODEL.FREEZE_ALL: # Used for Box_IOU head
-                if hasattr(self.roi_heads, 'box_predictor'):
+            if cfg.MODEL.FREEZE_ALL:  # Used for Box_IOU head
+                if hasattr(self.roi_heads, "box_predictor"):
                     if cfg.MODEL.FREEZE_ALL_BUT_BOXES:
                         for p in self.roi_heads.box_predictor.cls_score.parameters():
                             p.requires_grad = False
@@ -85,17 +81,17 @@ class GeneralizedRCNN(nn.Module):
                             p.requires_grad = False
                         print("froze box_predictor parameters")
 
-                if hasattr(self.roi_heads, 'mask_head'):
+                if hasattr(self.roi_heads, "mask_head"):
                     for p in self.roi_heads.mask_head.parameters():
                         p.requires_grad = False
                     print("froze all mask_head parameters")
-            else: # used for Fine-tuning step
-                if hasattr(self.roi_heads, 'box_iou_head'):
+            else:  # used for Fine-tuning step
+                if hasattr(self.roi_heads, "box_iou_head"):
                     for p in self.roi_heads.box_iou_head.parameters():
                         p.requires_grad = False
                     print("froze box_iou_head parameters")
 
-                if hasattr(self.roi_heads, 'box_iou_predictor'):
+                if hasattr(self.roi_heads, "box_iou_predictor"):
                     for p in self.roi_heads.box_iou_predictor.parameters():
                         p.requires_grad = False
                     print("froze box_iou_predictor parameters")
@@ -103,7 +99,6 @@ class GeneralizedRCNN(nn.Module):
         # for name, p in self.named_parameters():
         #     print(name, p.requires_grad)
         # exit()
-
 
     def forward(self, batched_inputs):
         """
@@ -133,18 +128,14 @@ class GeneralizedRCNN(nn.Module):
 
         images = self.preprocess_image(batched_inputs)
         if "instances" in batched_inputs[0]:
-            gt_instances = [
-                x["instances"].to(self.device) for x in batched_inputs
-            ]
+            gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
         elif "targets" in batched_inputs[0]:
             log_first_n(
                 logging.WARN,
                 "'targets' in the model inputs is now renamed to 'instances'!",
                 n=10,
             )
-            gt_instances = [
-                x["targets"].to(self.device) for x in batched_inputs
-            ]
+            gt_instances = [x["targets"].to(self.device) for x in batched_inputs]
         else:
             gt_instances = None
 
@@ -156,23 +147,17 @@ class GeneralizedRCNN(nn.Module):
             )
         else:
             assert "proposals" in batched_inputs[0]
-            proposals = [
-                x["proposals"].to(self.device) for x in batched_inputs
-            ]
+            proposals = [x["proposals"].to(self.device) for x in batched_inputs]
             proposal_losses = {}
 
-        _, detector_losses = self.roi_heads(
-            images, features, proposals, gt_instances
-        )
+        _, detector_losses = self.roi_heads(images, features, proposals, gt_instances)
 
         losses = {}
         losses.update(detector_losses)
         losses.update(proposal_losses)
         return losses
 
-    def inference(
-        self, batched_inputs, detected_instances=None, do_postprocess=True
-    ):
+    def inference(self, batched_inputs, detected_instances=None, do_postprocess=True):
         """
         Run inference on the given inputs.
 
@@ -199,15 +184,11 @@ class GeneralizedRCNN(nn.Module):
                 proposals, _ = self.proposal_generator(images, features, None)
             else:
                 assert "proposals" in batched_inputs[0]
-                proposals = [
-                    x["proposals"].to(self.device) for x in batched_inputs
-                ]
+                proposals = [x["proposals"].to(self.device) for x in batched_inputs]
 
             results, _ = self.roi_heads(images, features, proposals, None)
         else:
-            detected_instances = [
-                x.to(self.device) for x in detected_instances
-            ]
+            detected_instances = [x.to(self.device) for x in detected_instances]
             results = self.roi_heads.forward_with_given_boxes(
                 features, detected_instances
             )
@@ -231,9 +212,7 @@ class GeneralizedRCNN(nn.Module):
         """
         images = [x["image"].to(self.device) for x in batched_inputs]
         images = [self.normalizer(x) for x in images]
-        images = ImageList.from_tensors(
-            images, self.backbone.size_divisibility
-        )
+        images = ImageList.from_tensors(images, self.backbone.size_divisibility)
         return images
 
 
@@ -248,12 +227,8 @@ class ProposalNetwork(nn.Module):
             cfg, self.backbone.output_shape()
         )
 
-        pixel_mean = (
-            torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(-1, 1, 1)
-        )
-        pixel_std = (
-            torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(-1, 1, 1)
-        )
+        pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(-1, 1, 1)
+        pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(-1, 1, 1)
         self.normalizer = lambda x: (x - pixel_mean) / pixel_std
         self.to(self.device)
 
@@ -269,24 +244,18 @@ class ProposalNetwork(nn.Module):
         """
         images = [x["image"].to(self.device) for x in batched_inputs]
         images = [self.normalizer(x) for x in images]
-        images = ImageList.from_tensors(
-            images, self.backbone.size_divisibility
-        )
+        images = ImageList.from_tensors(images, self.backbone.size_divisibility)
         features = self.backbone(images.tensor)
 
         if "instances" in batched_inputs[0]:
-            gt_instances = [
-                x["instances"].to(self.device) for x in batched_inputs
-            ]
+            gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
         elif "targets" in batched_inputs[0]:
             log_first_n(
                 logging.WARN,
                 "'targets' in the model inputs is now renamed to 'instances'!",
                 n=10,
             )
-            gt_instances = [
-                x["targets"].to(self.device) for x in batched_inputs
-            ]
+            gt_instances = [x["targets"].to(self.device) for x in batched_inputs]
         else:
             gt_instances = None
         proposals, proposal_losses = self.proposal_generator(

@@ -19,9 +19,7 @@ logger = logging.getLogger(__name__)
 __all__ = ["register_meta_lvis"]
 
 
-def load_filtered_lvis_json(
-    json_file, image_root, metadata, dataset_name=None
-):
+def load_filtered_lvis_json(json_file, image_root, metadata, dataset_name=None):
     """
     Load a json file in LVIS's annotation format.
     Args:
@@ -39,7 +37,7 @@ def load_filtered_lvis_json(
            The results do not have the "image" field.
     """
     from lvis import LVIS
-    from fsdet.config import global_cfg
+    from fct.config import global_cfg
 
     json_file = PathManager.get_local_path(json_file)
 
@@ -47,9 +45,7 @@ def load_filtered_lvis_json(
     lvis_api = LVIS(json_file)
     if timer.seconds() > 1:
         logger.info(
-            "Loading {} takes {:.2f} seconds.".format(
-                json_file, timer.seconds()
-            )
+            "Loading {} takes {:.2f} seconds.".format(json_file, timer.seconds())
         )
 
     if dataset_name is not None and "train" in dataset_name:
@@ -71,9 +67,7 @@ def load_filtered_lvis_json(
     imgs_anns = list(zip(imgs, anns))
 
     logger.info(
-        "Loaded {} images in the LVIS format from {}".format(
-            len(imgs_anns), json_file
-        )
+        "Loaded {} images in the LVIS format from {}".format(len(imgs_anns), json_file)
     )
 
     dataset_dicts = []
@@ -97,14 +91,16 @@ def load_filtered_lvis_json(
             # Check that the image_id in this annotation is the same as
             # the image_id we're looking at.
             assert anno["image_id"] == image_id
-            obj = {"bbox": anno["bbox"], "bbox_mode": BoxMode.XYWH_ABS, 'segmentation': anno['segmentation']}
+            obj = {
+                "bbox": anno["bbox"],
+                "bbox_mode": BoxMode.XYWH_ABS,
+                "segmentation": anno["segmentation"],
+            }
             if global_cfg.MODEL.ROI_HEADS.NUM_CLASSES == 454:
                 # Novel classes only
                 if anno["category_id"] - 1 not in LVIS_CATEGORIES_NOVEL_IDS:
                     continue
-                obj["category_id"] = metadata["class_mapping"][
-                    anno["category_id"] - 1
-                ]
+                obj["category_id"] = metadata["class_mapping"][anno["category_id"] - 1]
             else:
                 # Convert 1-indexed to 0-indexed
                 obj["category_id"] = anno["category_id"] - 1

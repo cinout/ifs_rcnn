@@ -16,15 +16,15 @@ from fvcore.nn.precise_bn import get_bn_modules
 from torch.nn.parallel import DistributedDataParallel
 
 import detectron2.data.transforms as T
-from fsdet.checkpoint import DetectionCheckpointer
-from fsdet.engine.hooks import EvalHookFsdet
-from fsdet.evaluation import (
+from fct.checkpoint import DetectionCheckpointer
+from fct.engine.hooks import EvalHookFsdet
+from fct.evaluation import (
     DatasetEvaluator,
     inference_on_dataset,
     print_csv_format,
     verify_results,
 )
-from fsdet.modeling import build_model
+from fct.modeling import build_model
 from detectron2.data import (
     MetadataCatalog,
     build_detection_test_loader,
@@ -44,7 +44,7 @@ from detectron2.utils.events import (
 from detectron2.utils.logger import setup_logger
 from detectron2.data.dataset_mapper import DatasetMapper
 
-from fsdet.data import *
+from fct.data import *
 
 __all__ = [
     "default_argument_parser",
@@ -118,10 +118,8 @@ def default_argument_parser():
     # PyTorch still may leave orphan processes in multi-gpu training.
     # Therefore we use a deterministic way to obtain port,
     # so that users are aware of orphan processes by seeing the port occupied.
-    port = 2 ** 15 + 2 ** 14 + hash(os.getuid()) % 2 ** 14
-    parser.add_argument(
-        "--dist-url", default="tcp://127.0.0.1:{}".format(port)
-    )
+    port = 2**15 + 2**14 + hash(os.getuid()) % 2**14
+    parser.add_argument("--dist-url", default="tcp://127.0.0.1:{}".format(port))
     parser.add_argument(
         "--opts",
         help="Modify config options using the command-line",
@@ -149,7 +147,7 @@ def default_setup(cfg, args):
 
     rank = comm.get_rank()
     setup_logger(output_dir, distributed_rank=rank, name="fvcore")
-    setup_logger(output_dir, distributed_rank=rank, name="fsdet")
+    setup_logger(output_dir, distributed_rank=rank, name="fct")
     logger = setup_logger(output_dir, distributed_rank=rank)
 
     logger.info(
@@ -345,9 +343,9 @@ class DefaultTrainer(SimpleTrainer):
         # The checkpoint stores the training iteration that just finished, thus we start
         # at the next iteration (or iter zero if there's no checkpoint).
         self.start_iter = (
-            self.checkpointer.resume_or_load(
-                self.cfg.MODEL.WEIGHTS, resume=resume
-            ).get("iteration", -1)
+            self.checkpointer.resume_or_load(self.cfg.MODEL.WEIGHTS, resume=resume).get(
+                "iteration", -1
+            )
             + 1
         )
 
@@ -361,9 +359,7 @@ class DefaultTrainer(SimpleTrainer):
         """
         cfg = self.cfg.clone()
         cfg.defrost()
-        cfg.DATALOADER.NUM_WORKERS = (
-            0  # save some memory and time for PreciseBN
-        )
+        cfg.DATALOADER.NUM_WORKERS = 0  # save some memory and time for PreciseBN
 
         ret = [
             hooks.IterationTimer(),
@@ -397,8 +393,7 @@ class DefaultTrainer(SimpleTrainer):
 
         # Do evaluation after checkpointer, because then if it fails,
         # we can use the saved checkpoint to debug.
-        ret.append(EvalHookFsdet(
-            cfg.TEST.EVAL_PERIOD, test_and_save_results, self.cfg))
+        ret.append(EvalHookFsdet(cfg.TEST.EVAL_PERIOD, test_and_save_results, self.cfg))
 
         if comm.is_main_process():
             # run writers in the end, so that evaluation metrics are written
@@ -453,7 +448,7 @@ class DefaultTrainer(SimpleTrainer):
         Returns:
             torch.nn.Module:
 
-        It now calls :func:`fsdet.modeling.build_model`.
+        It now calls :func:`fct.modeling.build_model`.
         Overwrite it if you'd like a different model.
         """
         model = build_model(cfg)
@@ -468,7 +463,7 @@ class DefaultTrainer(SimpleTrainer):
         Returns:
             torch.optim.Optimizer:
 
-        It now calls :func:`fsdet.solver.build_optimizer`.
+        It now calls :func:`fct.solver.build_optimizer`.
         Overwrite it if you'd like a different optimizer.
         """
         return build_optimizer(cfg, model)
@@ -476,7 +471,7 @@ class DefaultTrainer(SimpleTrainer):
     @classmethod
     def build_lr_scheduler(cls, cfg, optimizer):
         """
-        It now calls :func:`fsdet.solver.build_lr_scheduler`.
+        It now calls :func:`fct.solver.build_lr_scheduler`.
         Overwrite it if you'd like a different scheduler.
         """
         return build_lr_scheduler(cfg, optimizer)
@@ -487,7 +482,7 @@ class DefaultTrainer(SimpleTrainer):
         Returns:
             iterable
 
-        It now calls :func:`fsdet.data.build_detection_train_loader`.
+        It now calls :func:`fct.data.build_detection_train_loader`.
         Overwrite it if you'd like a different data loader.
         """
         return build_detection_train_loader(cfg)
@@ -498,10 +493,10 @@ class DefaultTrainer(SimpleTrainer):
         Returns:
             iterable
 
-        It now calls :func:`fsdet.data.build_detection_test_loader`.
+        It now calls :func:`fct.data.build_detection_test_loader`.
         Overwrite it if you'd like a different data loader.
         """
-        if cfg.MODEL.EXTRACT_MODE: # TODO New here
+        if cfg.MODEL.EXTRACT_MODE:  # TODO New here
             mapper = DatasetMapper(cfg, True)
             mapper.augmentations = DatasetMapper(cfg, False).augmentations
             return build_detection_test_loader(cfg, dataset_name, mapper)
@@ -538,9 +533,9 @@ class DefaultTrainer(SimpleTrainer):
         if isinstance(evaluators, DatasetEvaluator):
             evaluators = [evaluators]
         if evaluators is not None:
-            assert len(cfg.DATASETS.TEST) == len(
-                evaluators
-            ), "{} != {}".format(len(cfg.DATASETS.TEST), len(evaluators))
+            assert len(cfg.DATASETS.TEST) == len(evaluators), "{} != {}".format(
+                len(cfg.DATASETS.TEST), len(evaluators)
+            )
 
         results = OrderedDict()
         for idx, dataset_name in enumerate(cfg.DATASETS.TEST):
@@ -568,9 +563,7 @@ class DefaultTrainer(SimpleTrainer):
                     results_i
                 )
                 logger.info(
-                    "Evaluation results for {} in csv format:".format(
-                        dataset_name
-                    )
+                    "Evaluation results for {} in csv format:".format(dataset_name)
                 )
                 print_csv_format(results_i)
 

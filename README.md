@@ -12,7 +12,7 @@ This codebase is primarily based on this codebase of https://github.com/ucbdrive
   - [Code Structure](#code-structure)
   - [Data Preparation](#data-preparation)
   - [Getting Started](#getting-started)
-    - [Training & Evaluation in Command Line](#training--evaluation-in-command-line)
+    - [Training \& Evaluation in Command Line](#training--evaluation-in-command-line)
     - [Multiple Runs](#multiple-runs)
 
 
@@ -26,16 +26,16 @@ This codebase is primarily based on this codebase of https://github.com/ucbdrive
 * CUDA 10.0, 10.1, 10.2
 * GCC >= 4.9
 
-**Build fsdet**
+**Build fct**
 * Create a virtual environment.
 ```angular2html
-python3 -m venv fsdet
-source fsdet/bin/activate
+python3 -m venv fct
+source fct/bin/activate
 ```
 You can also use `conda` to create a new environment.
 ```angular2html
-conda create --name fsdet
-conda activate fsdet
+conda create --name fct
+conda activate fct
 ```
 * Install Pytorch 1.6 with CUDA 10.2 
 ```angular2html

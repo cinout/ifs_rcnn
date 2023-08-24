@@ -11,8 +11,8 @@ import detectron2.utils.comm as comm
 from detectron2.data import MetadataCatalog
 from detectron2.utils.logger import create_small_table
 
-from fsdet.evaluation.coco_evaluation import instances_to_coco_json
-from fsdet.evaluation.evaluator import DatasetEvaluator
+from fct.evaluation.coco_evaluation import instances_to_coco_json
+from fct.evaluation.evaluator import DatasetEvaluator
 from copy import deepcopy
 
 
@@ -67,7 +67,8 @@ class LVISEvaluator(DatasetEvaluator):
             if "instances" in output:
                 instances = output["instances"].to(self._cpu_device)
                 prediction["instances"] = instances_to_coco_json(
-                    instances, input["image_id"])
+                    instances, input["image_id"]
+                )
             self._predictions.append(prediction)
 
     def evaluate(self):
@@ -80,8 +81,7 @@ class LVISEvaluator(DatasetEvaluator):
                 return
 
         if len(self._predictions) == 0:
-            self._logger.warning(
-                "[LVISEvaluator] Did not receive valid predictions.")
+            self._logger.warning("[LVISEvaluator] Did not receive valid predictions.")
             return {}
 
         if self._output_dir:
@@ -103,14 +103,13 @@ class LVISEvaluator(DatasetEvaluator):
         """
         self._logger.info("Preparing results in the LVIS format ...")
         self._lvis_results = list(
-            itertools.chain(*[x["instances"] for x in self._predictions]))
+            itertools.chain(*[x["instances"] for x in self._predictions])
+        )
 
         # unmap the category ids for LVIS
         if hasattr(self._metadata, "class_mapping"):
             # using reverse mapping
-            reverse_id_mapping = {
-                v: k for k, v in self._metadata.class_mapping.items()
-            }
+            reverse_id_mapping = {v: k for k, v in self._metadata.class_mapping.items()}
             for result in self._lvis_results:
                 result["category_id"] = reverse_id_mapping[result["category_id"]] + 1
         else:
@@ -119,8 +118,7 @@ class LVISEvaluator(DatasetEvaluator):
                 result["category_id"] += 1
 
         if self._output_dir:
-            file_path = os.path.join(
-                self._output_dir, "lvis_instances_results.json")
+            file_path = os.path.join(self._output_dir, "lvis_instances_results.json")
             self._logger.info("Saving results to {}".format(file_path))
             with PathManager.open(file_path, "w") as f:
                 f.write(json.dumps(self._lvis_results))
@@ -132,29 +130,30 @@ class LVISEvaluator(DatasetEvaluator):
 
         self._logger.info("Evaluating predictions ...")
 
-        iou_types = ['bbox']
-        if 'segmentation' in self._lvis_results[0]:
-            iou_types.append('segm')
+        iou_types = ["bbox"]
+        if "segmentation" in self._lvis_results[0]:
+            iou_types.append("segm")
 
         for iou_type in iou_types:
-            if iou_type == 'segm':
+            if iou_type == "segm":
                 results = []
                 for r in self._lvis_results:
                     new_r = deepcopy(r)
-                    del new_r['bbox']
+                    del new_r["bbox"]
                     results.append(new_r)
             else:
                 results = self._lvis_results
 
             res = _evaluate_predictions_on_lvis(
-                self._lvis_api, results, iou_type,
+                self._lvis_api,
+                results,
+                iou_type,
                 class_names=self._metadata.get("thing_classes"),
             )
             self._results[iou_type] = res
 
 
-def _evaluate_predictions_on_lvis(
-    lvis_gt, lvis_results, iou_type, class_names=None):
+def _evaluate_predictions_on_lvis(lvis_gt, lvis_results, iou_type, class_names=None):
     """
     Args:
         iou_type (str):
@@ -183,7 +182,6 @@ def _evaluate_predictions_on_lvis(
     results = lvis_eval.get_results()
     results = {metric: float(results[metric] * 100) for metric in metrics}
     logger.info(
-        "Evaluation results for {}: \n".format(iou_type) + \
-            create_small_table(results)
+        "Evaluation results for {}: \n".format(iou_type) + create_small_table(results)
     )
     return results
