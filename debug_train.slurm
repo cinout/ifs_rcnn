@@ -15,8 +15,8 @@
 #SBATCH --time=0-00:20:00
 
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=2
-#SBATCH --gres=gpu:2
+#SBATCH --ntasks-per-node=1
+#SBATCH --gres=gpu:1
 ### "ntasks-per-node" should have same value as "res=gpu:"
 
 #SBATCH --cpus-per-task=1
@@ -33,7 +33,7 @@ network=mask_rcnn
 arch=50
 suffix='_sigmoid_classifier_box_iou_uncertainty'
 
-CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -m tools.train_net --num-gpus 2 --config-file configs/${detection_folder}/${network}/${network}_R_${arch}_FPN_base${suffix}.yaml
+CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -m tools.train_net --num-gpus 1 --config-file configs/${detection_folder}/${network}/${network}_R_${arch}_FPN_base${suffix}.yaml
 
 ##Log this job's resource usage stats###
 my-job-stats -a -n -s
