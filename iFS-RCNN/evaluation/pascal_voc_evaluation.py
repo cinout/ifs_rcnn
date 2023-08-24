@@ -13,7 +13,7 @@ from detectron2.data import MetadataCatalog
 from detectron2.utils import comm
 from detectron2.utils.logger import create_small_table
 
-from fct.evaluation.evaluator import DatasetEvaluator
+from fsdet.evaluation.evaluator import DatasetEvaluator
 
 
 class PascalVOCDetectionEvaluator(DatasetEvaluator):

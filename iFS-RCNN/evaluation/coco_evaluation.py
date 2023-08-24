@@ -20,7 +20,7 @@ from detectron2.data.datasets.coco import convert_to_coco_json
 from detectron2.structures import BoxMode
 from detectron2.utils.logger import create_small_table
 
-from fct.evaluation.evaluator import DatasetEvaluator
+from fsdet.evaluation.evaluator import DatasetEvaluator
 from copy import deepcopy
 
 

@@ -1,4 +1,4 @@
-conda activate fct
+conda activate fsdet
 
 
 arch=50 

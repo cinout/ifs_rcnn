@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from fct.modeling.roi_heads import build_roi_heads
+from fsdet.modeling.roi_heads import build_roi_heads
 
 import logging
 from detectron2.modeling.backbone import build_backbone

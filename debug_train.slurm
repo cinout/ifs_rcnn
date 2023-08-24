@@ -25,7 +25,7 @@
 module purge
 
 eval "$(conda shell.bash hook)"
-conda activate fct
+conda activate fsdet
 
 dataset=coco
 detection_folder=${dataset^^}-detection

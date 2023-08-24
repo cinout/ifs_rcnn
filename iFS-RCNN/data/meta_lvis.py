@@ -37,7 +37,7 @@ def load_filtered_lvis_json(json_file, image_root, metadata, dataset_name=None):
            The results do not have the "image" field.
     """
     from lvis import LVIS
-    from fct.config import global_cfg
+    from fsdet.config import global_cfg
 
     json_file = PathManager.get_local_path(json_file)
 

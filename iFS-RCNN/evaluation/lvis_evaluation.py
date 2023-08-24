@@ -11,8 +11,8 @@ import detectron2.utils.comm as comm
 from detectron2.data import MetadataCatalog
 from detectron2.utils.logger import create_small_table
 
-from fct.evaluation.coco_evaluation import instances_to_coco_json
-from fct.evaluation.evaluator import DatasetEvaluator
+from fsdet.evaluation.coco_evaluation import instances_to_coco_json
+from fsdet.evaluation.evaluator import DatasetEvaluator
 from copy import deepcopy
 
 

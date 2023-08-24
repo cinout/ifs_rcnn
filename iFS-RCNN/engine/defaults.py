@@ -16,15 +16,15 @@ from fvcore.nn.precise_bn import get_bn_modules
 from torch.nn.parallel import DistributedDataParallel
 
 import detectron2.data.transforms as T
-from fct.checkpoint import DetectionCheckpointer
-from fct.engine.hooks import EvalHookFsdet
-from fct.evaluation import (
+from fsdet.checkpoint import DetectionCheckpointer
+from fsdet.engine.hooks import EvalHookFsdet
+from fsdet.evaluation import (
     DatasetEvaluator,
     inference_on_dataset,
     print_csv_format,
     verify_results,
 )
-from fct.modeling import build_model
+from fsdet.modeling import build_model
 from detectron2.data import (
     MetadataCatalog,
     build_detection_test_loader,
@@ -44,7 +44,7 @@ from detectron2.utils.events import (
 from detectron2.utils.logger import setup_logger
 from detectron2.data.dataset_mapper import DatasetMapper
 
-from fct.data import *
+from fsdet.data import *
 
 __all__ = [
     "default_argument_parser",
@@ -147,7 +147,7 @@ def default_setup(cfg, args):
 
     rank = comm.get_rank()
     setup_logger(output_dir, distributed_rank=rank, name="fvcore")
-    setup_logger(output_dir, distributed_rank=rank, name="fct")
+    setup_logger(output_dir, distributed_rank=rank, name="fsdet")
     logger = setup_logger(output_dir, distributed_rank=rank)
 
     logger.info(
@@ -448,7 +448,7 @@ class DefaultTrainer(SimpleTrainer):
         Returns:
             torch.nn.Module:
 
-        It now calls :func:`fct.modeling.build_model`.
+        It now calls :func:`fsdet.modeling.build_model`.
         Overwrite it if you'd like a different model.
         """
         model = build_model(cfg)
@@ -463,7 +463,7 @@ class DefaultTrainer(SimpleTrainer):
         Returns:
             torch.optim.Optimizer:
 
-        It now calls :func:`fct.solver.build_optimizer`.
+        It now calls :func:`fsdet.solver.build_optimizer`.
         Overwrite it if you'd like a different optimizer.
         """
         return build_optimizer(cfg, model)
@@ -471,7 +471,7 @@ class DefaultTrainer(SimpleTrainer):
     @classmethod
     def build_lr_scheduler(cls, cfg, optimizer):
         """
-        It now calls :func:`fct.solver.build_lr_scheduler`.
+        It now calls :func:`fsdet.solver.build_lr_scheduler`.
         Overwrite it if you'd like a different scheduler.
         """
         return build_lr_scheduler(cfg, optimizer)
@@ -482,7 +482,7 @@ class DefaultTrainer(SimpleTrainer):
         Returns:
             iterable
 
-        It now calls :func:`fct.data.build_detection_train_loader`.
+        It now calls :func:`fsdet.data.build_detection_train_loader`.
         Overwrite it if you'd like a different data loader.
         """
         return build_detection_train_loader(cfg)
@@ -493,7 +493,7 @@ class DefaultTrainer(SimpleTrainer):
         Returns:
             iterable
 
-        It now calls :func:`fct.data.build_detection_test_loader`.
+        It now calls :func:`fsdet.data.build_detection_test_loader`.
         Overwrite it if you'd like a different data loader.
         """
         if cfg.MODEL.EXTRACT_MODE:  # TODO New here

@@ -9,7 +9,7 @@ class FsDetHandler(PathHandler):
     Resolve anything that's in FsDet model zoo.
     """
 
-    PREFIX = "fct://"
+    PREFIX = "fsdet://"
     URL_PREFIX = "http://dl.yf.io/fs-det/models/"
 
     def _get_supported_prefixes(self):
