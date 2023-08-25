@@ -25,7 +25,7 @@
 module purge
 
 eval "$(conda shell.bash hook)"
-conda activate fsdet
+conda activate fct
 
 dataset=coco
 network=mask_rcnn
