@@ -25,7 +25,7 @@
 module purge
 
 eval "$(conda shell.bash hook)"
-conda activate fct
+conda activate fsdet
 
 dataset=coco
 detection_folder=${dataset^^}-detection
@@ -35,6 +35,7 @@ suffix='_sigmoid_classifier_box_iou_uncertainty'
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -m tools.train_net --num-gpus 1 --config-file configs/${detection_folder}/${network}/${network}_R_${arch}_FPN_base${suffix}.yaml
 
+# configs/coco-detection/mask_rcnn/mask_rcnn_R_50_FPN_base_sigmoid_classifier_box_iou_uncertainty.yaml
 ##Log this job's resource usage stats###
 my-job-stats -a -n -s
 ##
